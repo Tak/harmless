@@ -26,8 +26,8 @@ module Harmless
       @consumers.each_pair do |consumer, matcher|
         begin
           consumer.process_message(message) if !matcher || matcher(message)
-        rescue
-          puts("#{caller.first}: #{$!}")
+        rescue => error
+          puts("#{caller.first}: #{$!}\n#{error.backtrace}")
         end
       end
     end
