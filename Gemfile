@@ -6,3 +6,5 @@ gemspec
 gem 'reeeeeee', path: '../reeeeeee'
 gem 'reeval', github: 'Tak/reeval', branch: 'trunk'
 gem 'fixedqueue', github: 'Tak/fixedqueue', branch: 'trunk'
+gem 'grue', github: 'Tak/grue', branch: 'trunk'
+gem 'urika', github: 'Tak/urika', branch: 'trunk'
