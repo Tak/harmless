@@ -32,5 +32,8 @@ module Harmless
       @bot.send_message(channel, sometext)
     end # output_shame
 
+    def dump
+      @grue.dump
+    end
   end
 end

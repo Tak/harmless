@@ -5,6 +5,7 @@ require 'reeeeeee'
 
 require_relative 'credentials'
 require_relative 'grue'
+require_relative 'remote_control'
 
 module Harmless
   class Harmless
@@ -12,10 +13,12 @@ module Harmless
       @bot = Discordrb::Bot.new(token: Credentials::DISCORD_TOKEN)
       puts "This bot's invite URL is #{@bot.invite_url}."
       puts 'Click on it to invite it to your server.'
+      @grue = Grue.new(@bot)
       @bot.message { |message| process_message(message) }
       @consumers = {
         Reeeeeee::Reeeeeee.new(@bot) => nil,
-        Grue.new(@bot) => nil,
+        @grue => nil,
+        RemoteControl.new(self, @bot) => nil,
       }
     end
 
@@ -27,6 +30,10 @@ module Harmless
           puts("#{caller.first}: #{$!}")
         end
       end
+    end
+
+    def gruedump
+      @grue.dump
     end
 
     def run
