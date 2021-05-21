@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require 'discordrb'
-require 'reeeeeee'
 
 require_relative 'credentials'
 require_relative 'grue'
 require_relative 'remote_control'
+require_relative 'reeval'
 
 module Harmless
   class Harmless
@@ -16,7 +16,7 @@ module Harmless
       @grue = Grue.new(@bot)
       @bot.message { |message| process_message(message) }
       @consumers = {
-        Reeeeeee::Reeeeeee.new(@bot) => nil,
+        REEval.new(@bot) => nil,
         @grue => nil,
         RemoteControl.new(self, @bot) => nil,
       }

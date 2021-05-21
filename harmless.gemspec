@@ -23,7 +23,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'discordrb'
-  spec.add_dependency 'reeeeeee'
   spec.add_dependency 'grue'
   spec.add_dependency 'urika'
 
