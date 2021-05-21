@@ -22,7 +22,8 @@ module Harmless
     # Received message callback
     def process_message(message)
       text = message.content.strip
-      run_command(text.sub(/^#{Credentials::COMMAND_PHRASE}\s*/, '')) if text.start_with?(Credentials::COMMAND_PHRASE)
+      response = run_command(text.sub(/^#{Credentials::COMMAND_PHRASE}\s*/, '')) if text.start_with?(Credentials::COMMAND_PHRASE)
+      message.send_message(response) if response
     end
 
     # Execute a command string
@@ -31,6 +32,7 @@ module Harmless
       case command
       when 'GRUEDUMP'
         @harmless.gruedump
+        return 'Dumped grue database'
 
       when DELETERE
         if (match = command.match(DELETERE))
@@ -43,9 +45,8 @@ module Harmless
               myMessageCount += 1 if message.author.id == @bot.profile.id
               next unless myMessageCount > messageIndex
 
-              puts "Deleting: #{message.content}"
               channel.delete_message(message.id)
-              break
+              return "Deleted: #{message.content} from ##{channel.name} on #{channel.server.name}"
             end
           end
         end
@@ -56,6 +57,7 @@ module Harmless
         end
 
       end
+      nil
     end
 
     def lookup_channel(name)
