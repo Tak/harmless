@@ -1,0 +1,19 @@
+AllCops:
+  TargetRubyVersion: 2.5
+  NewCops: enable
+Naming:
+  Enabled: false
+Metrics:
+  Enabled: false
+Lint/ShadowingOuterLocalVariable:
+  Enabled: false
+Style/SpecialGlobalVars:
+  Enabled: false
+Style/RescueStandardError:
+  Enabled: false
+Style/TrailingCommaInHashLiteral:
+  Enabled: false
+Style/CommentedKeyword:
+  Enabled: false
+Bundler/OrderedGems:
+  Enabled: false

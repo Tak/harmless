@@ -8,6 +8,7 @@ require_relative 'remote_control'
 require_relative 'reeval'
 
 module Harmless
+  # Discord bot that integrates a bunch of small message reaction functionalities
   class Harmless
     def initialize
       @bot = Discordrb::Bot.new(token: Credentials::DISCORD_TOKEN)
@@ -24,11 +25,9 @@ module Harmless
 
     def process_message(message)
       @consumers.each_pair do |consumer, matcher|
-        begin
-          consumer.process_message(message) if !matcher || matcher(message)
-        rescue => error
-          puts("#{caller.first}: #{$!}\n#{error.backtrace}")
-        end
+        consumer.process_message(message) if !matcher || matcher(message)
+      rescue => error
+        puts("#{caller.first}: #{$!}\n#{error.backtrace}")
       end
     end
 
