@@ -8,6 +8,7 @@ module Harmless
   class RemoteControl
     MSGRE = /^MSG #([-\w]+)\s+(.*)/.freeze
     DELETERE = /^DELETE #([-\w]+)\s+(\d+)/.freeze
+    REACTRE = /^REACT #([-\w]+)\s+(\w+)\s+(\d+)\s+([^\s]+)\s*$/.freeze
 
     MESSAGE_LOOKUP_COUNT = 20
 
@@ -22,7 +23,9 @@ module Harmless
     # Received message callback
     def process_message(message)
       text = message.content.strip
-      response = run_command(text.sub(/^#{Credentials::COMMAND_PHRASE}\s*/, '')) if text.start_with?(Credentials::COMMAND_PHRASE)
+      if text.start_with?(Credentials::COMMAND_PHRASE)
+        response = run_command(text.sub(/^#{Credentials::COMMAND_PHRASE}\s*/, ''))
+      end
       message.send_message(response) if response
     end
 
@@ -30,10 +33,12 @@ module Harmless
     # @param command A command string, e.g. 'MSG #sslug whatever'
     def run_command(command)
       case command
+      # syntax: GRUEDUMP
       when 'GRUEDUMP'
         @harmless.gruedump
         return 'Dumped grue database'
 
+      # syntax: DELETE #channel index [0..)
       when DELETERE
         if (match = command.match(DELETERE))
           messageIndex = match[2].to_i
@@ -51,9 +56,32 @@ module Harmless
           end
         end
 
+      # syntax: MSG #channel message...
       when MSGRE
         if (match = command.match(MSGRE)) && (channel = lookup_channel(match[1]))
           @bot.send_message(channel.id, match[2])
+        end
+
+      # syntax: REACT #channel displayname index [0..) :reaction:
+      when REACTRE
+        if (match = command.match(REACTRE))
+          channel = lookup_channel(match[1])
+          raise "Failed to look up channel '##{match[1]}'" unless channel
+
+          user = match[2]
+          messageIndex = match[3].to_i
+          reaction = match[4]
+
+          myMessageCount = 0
+          raise "Invalid message index #{messageIndex}" if messageIndex.negative? || messageIndex > MESSAGE_LOOKUP_COUNT
+
+          channel.history(MESSAGE_LOOKUP_COUNT).each do |message|
+            myMessageCount += 1 if message.author.display_name == user
+            next unless myMessageCount > messageIndex
+
+            message.react(reaction)
+            return nil
+          end
         end
 
       end
