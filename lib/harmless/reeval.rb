@@ -9,6 +9,8 @@ module Harmless
     NICKRE = /<@!?(\d+)>/
     CHANNELIDRE = /<#(\d+)>/
     EMOTERE = /^_(.+)_$/
+    IRCEMOTEREPLACEMENT = "\001ACTION\\1\001"
+    IRCEMOTERE = /\001ACTION(.*)\001/
 
     def initialize(bot)
       @reeval = ::REEval::REEval.new
@@ -25,6 +27,7 @@ module Harmless
 
       puts("Processing message: #{mynick}|#{channel.name}: #{content}")
       newcontent = replace_ids(message)
+      newcontent.sub!(EMOTERE, IRCEMOTEREPLACEMENT)
       puts("Postprocessed message: #{mynick}|#{channel.name}: #{newcontent}") if newcontent != content
       content = newcontent
 
@@ -55,15 +58,14 @@ module Harmless
 
       puts "#{nick} => #{tonick} '#{sometext}'"
 
-      newtext = sometext.sub(EMOTERE, '\\1')
+      newtext = sometext.sub(IRCEMOTERE, '\\1')
       emote = (newtext != sometext)
 
-      if tonick
-        sometext = "\\* _#{tonick} #{newtext}_" if emote
-        sometext = "#{nick} thinks #{tonick} meant: #{sometext}"
+      sometext = "\\* _#{tonick || nick} #{newtext}_" if emote
+      sometext = if tonick
+        "#{nick} thinks #{tonick} meant: #{sometext}"
       else
-        sometext = "\\* _#{nick} #{newtext}_" if emote
-        sometext = "#{nick} meant: #{sometext}"
+        "#{nick} meant: #{sometext}"
       end
       @bot.send_message(channel, sometext)
     end
