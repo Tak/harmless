@@ -35,7 +35,7 @@ module Harmless
       end
     end
 
-    # Commands
+    # Command methods
     # Dump the grueing database
     def gruedump
       @harmless.gruedump
@@ -85,7 +85,7 @@ module Harmless
       raise "Invalid message index #{messageIndex}" if messageIndex.negative? || messageIndex > MESSAGE_LOOKUP_COUNT
     end
 
-    # Tokenizers
+    # Tokenizer methods
     # Split the first whitespace-separated chunk from a string
     # @param argumentString
     # @return [token, remainderOfString]
@@ -99,9 +99,9 @@ module Harmless
     # @raise When a valid channel identifier is not found
     def self.parse_channel(argumentString)
       channel, argumentString = parse_word(argumentString)
-      raise "Invalid channel '#{channel}'" unless channel.match?((/^#[^\s]+/))
+      raise "Invalid channel '#{channel}'" unless (match = channel.match((/^#([^\s]+)/)))
 
-      [channel.sub(/^#/, ''), argumentString]
+      [match[1], argumentString]
     end
 
     # Parse an integer from the beginning of a string
@@ -113,6 +113,22 @@ module Harmless
       [Integer(integerString), argumentString]
     end
 
+    # Parse all remaining text from a string
+    # @param argumentString
+    # @return [argumentString, nil]
+    def self.parse_text(argumentString)
+      raise 'End of input reached' unless argumentString
+
+      [argumentString, nil]
+    end
+
+    # Get the appropriate method for parsing a parameter type
+    # @param typeSymbol A type symbol, e.g. INTEGER
+    # @return The parser method for the type symbol, e.g. parse_integer
+    def self.get_parser_method_for(typeSymbol)
+      method("parse_#{typeSymbol.to_s.downcase}".to_sym)
+    end
+
     # Parse typed arguments from a string
     # @param parameterList A list of argument type parameters (i.e. COMMANDS)
     # @param argumentString The string to parse
@@ -121,21 +137,7 @@ module Harmless
       return nil unless parameterList
 
       tokens = parameterList.inject([]) do |tokens, parameter|
-        case parameter
-        when :INTEGER
-          token, argumentString = parse_integer(argumentString)
-        when :WORD
-          token, argumentString = parse_word(argumentString)
-        when :CHANNEL
-          token, argumentString = parse_channel(argumentString)
-        when :TEXT
-          return nil unless argumentString
-
-          token = argumentString
-          argumentString = nil
-        else
-          return nil
-        end
+        token, argumentString = get_parser_method_for(parameter).call(argumentString)
         tokens << token
       end
       argumentString && !argumentString.strip.empty? ? nil : tokens
