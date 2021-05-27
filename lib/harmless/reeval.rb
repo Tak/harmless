@@ -70,6 +70,7 @@ module Harmless
       @bot.send_message(channel, sometext)
     end
 
+    # Replace embedded discord IDs with names
     def replace_ids(message)
       text = message.content.strip
       text = text.scan(CHANNELIDRE).inject(text) do |input, id|

@@ -7,5 +7,6 @@ gemspec
 
 gem "fixedqueue", github: "Tak/fixedqueue", branch: "trunk"
 gem "grue", github: "Tak/grue", branch: "trunk"
+gem "parsel", github: "Tak/parsel", branch: "trunk"
 gem "reeval", github: "Tak/reeval", branch: "trunk"
 gem "urika", github: "Tak/urika", branch: "trunk"

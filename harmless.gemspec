@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "discordrb"
   spec.add_dependency "grue"
+  spec.add_dependency "parsel"
   spec.add_dependency "urika"
 
   spec.add_development_dependency "bundler"
