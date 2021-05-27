@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'grue'
+require "grue"
 
 module Harmless
   # Discord wrapper for url repost shaming
@@ -22,14 +22,14 @@ module Harmless
     # * results are the results of the lookup
     def output_shame(channel, nick, results)
       originick = results[0][1]
-      durationText = ::Grue.pretty_print_duration_difference(results[0][2], Time.now)
+      duration_text = ::Grue.pretty_print_duration_difference(results[0][2], Time.now)
       duplicates = results.size - 2
 
       sometext = if originick.casecmp(nick).zero?
-                   "#{nick} just grued its own link from #{durationText} ago!"
-                 else
-                   "#{nick} just grued #{originick}'s link from #{durationText} ago!"
-                 end
+        "#{nick} just grued its own link from #{duration_text} ago!"
+      else
+        "#{nick} just grued #{originick}'s link from #{duration_text} ago!"
+      end
       sometext += " (#{duplicates} duplicates)" if duplicates.positive?
 
       @bot.send_message(channel, sometext)

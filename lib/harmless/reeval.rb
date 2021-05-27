@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require 'reeval'
+require "reeval"
 
 module Harmless
   # Discord wrapper for regex evaluation plugin
   class REEval
-    CHANNELRE = /^#[-\w\d]+$/.freeze
-    NICKRE = /<@!?(\d+)>/.freeze
-    CHANNELIDRE = /<#(\d+)>/.freeze
-    EMOTERE = /^_(.+)_$/.freeze
+    CHANNELRE = /^#[-\w\d]+$/
+    NICKRE = /<@!?(\d+)>/
+    CHANNELIDRE = /<#(\d+)>/
+    EMOTERE = /^_(.+)_$/
 
     def initialize(bot)
       @reeval = ::REEval::REEval.new
@@ -30,7 +30,7 @@ module Harmless
 
       if (matches = content.match(CHANNELRE))
         # Allow /msg wat #sslug ledge: -1s/.*/I suck!
-        content = content.sub(CHANNELRE, '').strip
+        content = content.sub(CHANNELRE, "").strip
         channel = message.server.text_channels.detect { |channel| channel.name == matches[0] }
         return if channel.nil?
       end
@@ -42,8 +42,8 @@ module Harmless
 
       message.respond(response) if response
     rescue
-      puts("#{caller.first}: #{$!}")
-    end # process_message
+      puts("#{caller(1..1).first}: #{$!}")
+    end
 
     # Sends a replacement message
     # * nick is the nick of the user who issued the replacement command
@@ -66,7 +66,7 @@ module Harmless
         sometext = "#{nick} meant: #{sometext}"
       end
       @bot.send_message(channel, sometext)
-    end # output_replacement
+    end
 
     def replace_ids(message)
       text = message.content.strip
