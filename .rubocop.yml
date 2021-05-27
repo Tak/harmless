@@ -1,6 +1,7 @@
 AllCops:
   TargetRubyVersion: 2.5
   NewCops: enable
+  SuggestExtensions: false
 Naming:
   Enabled: false
 Metrics:
@@ -10,6 +11,8 @@ Lint/ShadowingOuterLocalVariable:
 Style/SpecialGlobalVars:
   Enabled: false
 Style/RescueStandardError:
+  Enabled: false
+Style/TrailingCommaInArrayLiteral:
   Enabled: false
 Style/TrailingCommaInHashLiteral:
   Enabled: false
