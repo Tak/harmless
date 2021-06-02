@@ -1,19 +1,20 @@
 # frozen_string_literal: true
 
 require "reeval"
+require "parsel"
 
 module Harmless
   # Discord wrapper for regex evaluation plugin
   class REEval
-    CHANNELRE = /^#[-\w\d]+$/
     NICKRE = /<@!?(\d+)>/
     CHANNELIDRE = /<#(\d+)>/
-    EMOTERE = /^_(.+)_$/
+    EMOTERE = /^_([^_]+)_$/
     IRCEMOTEREPLACEMENT = "\001ACTION\\1\001"
     IRCEMOTERE = /\001ACTION(.*)\001/
 
-    def initialize(bot)
+    def initialize(harmless, bot)
       @reeval = ::REEval::REEval.new
+      @harmless = harmless
       @bot = bot
     end
 
@@ -21,31 +22,43 @@ module Harmless
     # * data -> discord message event
     def process_message(message)
       # FIXME: Doesn't work with private messages
-      mynick = message.author.display_name
-      channel = message.channel
-      content = message.content.strip
-
-      puts("Processing message: #{mynick}|#{channel.name}: #{content}")
-      newcontent = replace_ids(message)
-      newcontent.sub!(EMOTERE, IRCEMOTEREPLACEMENT)
-      puts("Postprocessed message: #{mynick}|#{channel.name}: #{newcontent}") if newcontent != content
-      content = newcontent
-
-      if (matches = content.match(CHANNELRE))
-        # Allow /msg wat #sslug ledge: -1s/.*/I suck!
-        content = content.sub(CHANNELRE, "").strip
-        channel = message.server.text_channels.detect { |channel| channel.name == matches[0] }
-        return if channel.nil?
-      end
-      storekey = "#{mynick}|#{channel.name}"	# Append channel name for (some) uniqueness
-
-      response = @reeval.process_full(storekey, mynick, content) do |from, to, msg|
-        output_replacement(from, to, channel.id, msg)
+      response = do_process_message(message.author.display_name, message.channel.name, message.channel.id,
+        preprocess_message(message.content, message)) do |from, to, channel_id, text|
+        output_replacement(from, to, channel_id, text)
       end
 
       message.respond(response) if response
     rescue
       puts("#{caller(1..1).first}: #{$!}")
+    end
+
+    # Preprocess a message
+    # - Trims leading/trailing whitespace
+    # - Replaces embedded IDs
+    # - Replaces "emote" markup with irc emote markers
+    # @param message The message to preprocess
+    # @return The text of the preprocessed message
+    def preprocess_message(content, message)
+      replace_ids(content.strip, message).sub(EMOTERE, IRCEMOTEREPLACEMENT).strip
+    end
+
+    def do_process_message(author, channel_name, channel_id, content)
+      begin
+        # Allow /msg wat #sslug ledge: -1s/.*/I suck!
+        channel_name, content = Parsel::Parsel.parse_channel(content)
+        channel = @harmless.lookup_channel(channel_name)
+        return if channel.nil?
+        channel_name = channel.name
+        channel_id = channel.id
+      rescue
+        # Normal case
+      end
+
+      storekey = "#{author}|#{channel_name}"	# Append channel name for (some) uniqueness
+
+      @reeval.process_full(storekey, author, content) do |from, to, msg|
+        yield from, to, channel_id, msg
+      end
     end
 
     # Sends a replacement message
@@ -71,8 +84,7 @@ module Harmless
     end
 
     # Replace embedded discord IDs with names
-    def replace_ids(message)
-      text = message.content.strip
+    def replace_ids(text, message)
       text = text.scan(CHANNELIDRE).inject(text) do |input, id|
         if (channel = message.server.text_channels.detect { |channel| channel.id == id[0] })
           input.sub(/<##{id[0]}>/, "##{channel.name}")
