@@ -12,6 +12,7 @@ module Harmless
     # e.g. react(channelName, username, index, reaction)
     COMMANDS = {
       GRUEDUMP: [],
+      GIBBERDUMP: [],
       MSG: %i[CHANNEL TEXT],
       DELETE: %i[CHANNEL INTEGER],
       REACT: %i[CHANNEL WORD INTEGER WORD]
@@ -40,6 +41,11 @@ module Harmless
     def gruedump
       @harmless.gruedump
       "Dumped grue database"
+    end
+
+    def gibberdump
+      @harmless.gibberdump
+      "Dumped gibber database"
     end
 
     # Send a message to a channel

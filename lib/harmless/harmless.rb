@@ -6,22 +6,27 @@ require_relative "credentials"
 require_relative "grue"
 require_relative "remote_control"
 require_relative "reeval"
+require_relative "gibber"
 
 module Harmless
   # Discord bot that integrates a bunch of small message reaction functionalities
   class Harmless
     MESSAGE_LOOKUP_COUNT = 20
+    NICKRE = /<@!?(\d+)>/
+    CHANNELIDRE = /<#(\d+)>/
 
     def initialize
       @bot = Discordrb::Bot.new(token: Credentials::DISCORD_TOKEN)
       puts "This bot's invite URL is #{@bot.invite_url}."
       puts "Click on it to invite it to your server."
       @grue = Grue.new(@bot)
+      @gibber = Gibber.new(self, @bot)
       @bot.message { |message| process_message(message) }
       @consumers = {
         REEval.new(self, @bot) => nil,
         @grue => nil,
-        RemoteControl.new(self, @bot) => nil
+        RemoteControl.new(self, @bot) => nil,
+        @gibber => nil
       }
     end
 
@@ -35,6 +40,10 @@ module Harmless
 
     def gruedump
       @grue.dump
+    end
+
+    def gibberdump
+      @gibber.dump
     end
 
     def run
@@ -67,6 +76,24 @@ module Harmless
 
         yield message
         break
+      end
+    end
+
+    # Replace embedded discord IDs with names
+    def self.replace_ids(text, message)
+      text = text.scan(CHANNELIDRE).inject(text) do |input, id|
+        if (channel = message.server.text_channels.detect { |channel| channel.id == id[0] })
+          input.sub(/<##{id[0]}>/, "##{channel.name}")
+        else
+          input
+        end
+      end
+      text.scan(NICKRE).inject(text) do |input, id|
+        if (member = message.server.member(id[0].to_i))
+          input.sub(/<@!?#{id[0]}>/, "#{member.display_name}:")
+        else
+          input
+        end
       end
     end
   end

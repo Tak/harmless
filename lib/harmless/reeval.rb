@@ -6,8 +6,6 @@ require "parsel"
 module Harmless
   # Discord wrapper for regex evaluation plugin
   class REEval
-    NICKRE = /<@!?(\d+)>/
-    CHANNELIDRE = /<#(\d+)>/
     EMOTERE = /^_([^_]+)_$/
     IRCEMOTEREPLACEMENT = "\001ACTION\\1\001"
     IRCEMOTERE = /\001ACTION(.*)\001/
@@ -39,7 +37,7 @@ module Harmless
     # @param message The message to preprocess
     # @return The text of the preprocessed message
     def preprocess_message(content, message)
-      replace_ids(content.strip, message).sub(EMOTERE, IRCEMOTEREPLACEMENT).strip
+      Harmless.replace_ids(content.strip, message).sub(EMOTERE, IRCEMOTEREPLACEMENT).strip
     end
 
     def do_process_message(author, channel_name, channel_id, content)
@@ -81,24 +79,6 @@ module Harmless
         "#{nick} meant: #{sometext}"
       end
       @bot.send_message(channel, sometext)
-    end
-
-    # Replace embedded discord IDs with names
-    def replace_ids(text, message)
-      text = text.scan(CHANNELIDRE).inject(text) do |input, id|
-        if (channel = message.server.text_channels.detect { |channel| channel.id == id[0] })
-          input.sub(/<##{id[0]}>/, "##{channel.name}")
-        else
-          input
-        end
-      end
-      text.scan(NICKRE).inject(text) do |input, id|
-        if (member = message.server.member(id[0].to_i))
-          input.sub(/<@!?#{id[0]}>/, "#{member.display_name}:")
-        else
-          input
-        end
-      end
     end
   end
 end
