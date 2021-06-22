@@ -19,14 +19,16 @@ module Harmless
     # Processes an incoming server message
     # * data -> discord message event
     def process_message(message)
+      restrict_propagation = false
+      content = preprocess_message(message.content.strip, message)
       # FIXME: Doesn't work with private messages
-      response = do_process_message(message.author.display_name, message.channel.name, message.channel.id,
-        preprocess_message(message.content, message)) do |from, to, channel_id, text|
+      response = do_process_message(message.author.display_name, message.channel.name, message.channel.id, content) do |from, to, channel_id, text|
+        restrict_propagation = true
         output_replacement(from, to, channel_id, text)
       end
 
       message.respond(response) if response
-      false
+      restrict_propagation || response # Don't propagate if reeval reacted to a regex
     end
 
     # Preprocess a message
@@ -36,7 +38,7 @@ module Harmless
     # @param message The message to preprocess
     # @return The text of the preprocessed message
     def preprocess_message(content, message)
-      Harmless.replace_ids(content.strip, message).sub(EMOTERE, IRCEMOTEREPLACEMENT).strip
+      Harmless.replace_ids(content, message).sub(EMOTERE, IRCEMOTEREPLACEMENT).strip
     end
 
     def do_process_message(author, channel_name, channel_id, content)
