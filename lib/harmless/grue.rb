@@ -15,6 +15,7 @@ module Harmless
       nick = message.author.display_name
       response = @grue.process_statement("##{message.channel.name}", nick, message.content.strip)
       output_shame(message.channel.id, nick, response) if response && response.size > 1
+      false
     end
 
     # Sends a shaming message

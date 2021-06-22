@@ -16,10 +16,11 @@ module Harmless
       if text.strip.start_with?("#{@bot.profile.username}: ")
         reply = @gibber.spew(text)
         puts "Responding: #{reply}"
-        # message.reply(@gibber.spew(text))
+        # message.respond(@gibber.spew(text))
       end
       puts "Ingesting: #{text}"
       @gibber.ingest_text(text)
+      false
     end
 
     def dump

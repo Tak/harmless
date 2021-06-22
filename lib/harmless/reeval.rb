@@ -26,8 +26,7 @@ module Harmless
       end
 
       message.respond(response) if response
-    rescue
-      puts("#{caller(1..1).first}: #{$!}")
+      false
     end
 
     # Preprocess a message

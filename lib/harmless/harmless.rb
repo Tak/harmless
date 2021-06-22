@@ -22,17 +22,21 @@ module Harmless
       @grue = Grue.new(@bot)
       @gibber = Gibber.new(self, @bot)
       @bot.message { |message| process_message(message) }
-      @consumers = {
-        REEval.new(self, @bot) => nil,
-        @grue => nil,
-        RemoteControl.new(self, @bot) => nil,
-        @gibber => nil
-      }
+      @consumers = [
+        [RemoteControl.new(self, @bot), nil],
+        [REEval.new(self, @bot), nil],
+        [@grue, nil],
+        [@gibber, nil]
+      ]
     end
 
     def process_message(message)
-      @consumers.each_pair do |consumer, matcher|
-        consumer.process_message(message) if !matcher || matcher(message)
+      @consumers.each do |pair|
+        consumer = pair[0]
+        matcher = pair[1]
+        if !matcher || matcher(message)
+          break if consumer.process_message(message)
+        end
       rescue => error
         puts("#{caller(1..1).first}: #{$!}\n#{error.backtrace}")
       end

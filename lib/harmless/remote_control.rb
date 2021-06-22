@@ -29,11 +29,16 @@ module Harmless
     # Received message callback
     def process_message(message)
       text = message.content.strip
-      return unless text.start_with?(Credentials::COMMAND_PHRASE)
+      return false unless text.start_with?(Credentials::COMMAND_PHRASE)
 
-      run_command(text.sub(/^#{Credentials::COMMAND_PHRASE}\s*/o, "")) do |response|
-        message.send_message(response) if response
+      begin
+        run_command(text.sub(/^#{Credentials::COMMAND_PHRASE}\s*/o, "")) do |response|
+          message.send_message(response) if response
+        end
+      rescue
+        # Ensure that we don't propagate the command phrase to other plugins even if something goes wrong
       end
+      true
     end
 
     # Command methods
