@@ -3,6 +3,7 @@ require "gibber"
 module Harmless
   class Gibber
     CACHE = "#{ENV["HOME"]}/.gibber.yaml".freeze
+    ROLLERBOT = /^([^\s]+\s+)?Roll:\s*.?\[(\d+,?\s*)+\].?\s+Result:/
 
     def initialize(harmless, bot)
       @gibber = ::Gibber::Gibber.new(CACHE)
@@ -10,8 +11,15 @@ module Harmless
       @bot = bot
     end
 
+    def should_ingest(text)
+      !text.match?(ROLLERBOT) # Don't ingest this garbage
+    end
+
     def process_message(message)
-      text = Harmless.replace_ids(message.content, message)
+      content = message.content.strip
+      return false unless should_ingest(content)
+
+      text = Harmless.replace_ids(content, message)
 
       if text.strip.start_with?("#{@bot.profile.username}: ")
         reply = @gibber.spew(text)
