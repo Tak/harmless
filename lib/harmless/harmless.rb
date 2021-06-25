@@ -20,7 +20,7 @@ module Harmless
       puts "This bot's invite URL is #{@bot.invite_url}."
       puts "Click on it to invite it to your server."
       @grue = Grue.new(@bot)
-      @gibber = Gibber.new(self, @bot)
+      @gibber = Gibber.new(self, @bot, 0) # disable periodic autoresponse for now
       @bot.message { |message| process_message(message) }
       @consumers = [
         [RemoteControl.new(self, @bot), nil],

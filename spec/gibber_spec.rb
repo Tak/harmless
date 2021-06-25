@@ -53,4 +53,26 @@ RSpec.describe Harmless::Gibber do
       end
     end
   end
+
+  context "response heuristics" do
+    it "doesn't respond when periodicity is disabled" do
+      gibber = Harmless::Gibber.new(nil, nil, 0)
+      100.times do |i|
+        expect(gibber.should_respond("", 0, i)).to eq(false)
+      end
+    end
+
+    it "doesn't respond to every message" do
+      gibber = Harmless::Gibber.new(nil, nil)
+      responses = 100.times.select{ gibber.should_respond("", 100, 1) }
+      expect(responses.size).to be < 10
+    end
+
+    it "responds within periodicity" do
+      gibber = Harmless::Gibber.new(nil, nil)
+      [10, 100, 1000].each do |period|
+        expect(period.times.detect { |i| gibber.should_respond("", period, i) }).not_to be_nil
+      end
+    end
+  end
 end

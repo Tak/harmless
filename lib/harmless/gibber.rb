@@ -7,10 +7,12 @@ module Harmless
     RERE = /^\s*([^ :]+: *)?(-?\d*)?[Ss]([^\w])([^\3]*)\3([^\3]*)(\3([ginx]+|[0-9]{2}\%|))?$/
     TRRE = /^\s*([^ :]+: *)?(-?\d*)?[Tt][Rr]([^\w])([^\3]*)\3([^\3]*)(\3([0-9]{2}\%)?)?$/
 
-    def initialize(harmless, bot)
+    def initialize(harmless, bot, response_period = 100)
       @gibber = ::Gibber::Gibber.new(CACHE)
       @harmless = harmless
       @bot = bot
+      @response_period = response_period
+      @seen_messages = 0
       @user_prefix = "#{bot.profile.username}: " if bot
     end
 
@@ -21,14 +23,23 @@ module Harmless
         !text.match?(TRRE)
     end
 
+    def should_respond(text, response_period, seen_messages)
+      (@user_prefix && text.strip.start_with?(@user_prefix)) || # direct mentions
+        (response_period > 0 && (rand(response_period - seen_messages) == 1)) # periodicity
+    end
+
+    def respond_to(text, message)
+      @seen_messages = 0
+      message.respond(@gibber.spew(text))
+    end
+
     def process_message(message)
       content = message.content.strip
       return false unless should_ingest(content)
 
       text = Harmless.replace_ids(content, message)
-
-      # Respond to direct mentions
-      message.respond(@gibber.spew(text)) if text.strip.start_with?(@user_prefix)
+      @seen_messages += 1
+      respond_to(text, message) if should_respond(text, @response_period, @seen_messages)
       puts "Ingesting: #{text}"
       @gibber.ingest_text(text)
       false
