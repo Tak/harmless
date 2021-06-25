@@ -11,6 +11,7 @@ module Harmless
       @gibber = ::Gibber::Gibber.new(CACHE)
       @harmless = harmless
       @bot = bot
+      @user_prefix = "#{bot.profile.username}: " if bot
     end
 
     # Don't ingest this garbage
@@ -26,11 +27,8 @@ module Harmless
 
       text = Harmless.replace_ids(content, message)
 
-      if text.strip.start_with?("#{@bot.profile.username}: ")
-        reply = @gibber.spew(text)
-        puts "Responding: #{reply}"
-        # message.respond(@gibber.spew(text))
-      end
+      # Respond to direct mentions
+      message.respond(@gibber.spew(text)) if text.strip.start_with?(@user_prefix)
       puts "Ingesting: #{text}"
       @gibber.ingest_text(text)
       false
