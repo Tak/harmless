@@ -4,6 +4,8 @@ module Harmless
   class Gibber
     CACHE = "#{ENV["HOME"]}/.gibber.yaml".freeze
     ROLLERBOT = /^([^\s]+\s+)?Roll:\s*.?\[(\d+,?\s*)+\].?\s+Result:/
+    RERE = /^\s*([^ :]+: *)?(-?\d*)?[Ss]([^\w])([^\3]*)\3([^\3]*)(\3([ginx]+|[0-9]{2}\%|))?$/
+    TRRE = /^\s*([^ :]+: *)?(-?\d*)?[Tt][Rr]([^\w])([^\3]*)\3([^\3]*)(\3([0-9]{2}\%)?)?$/
 
     def initialize(harmless, bot)
       @gibber = ::Gibber::Gibber.new(CACHE)
@@ -11,8 +13,11 @@ module Harmless
       @bot = bot
     end
 
+    # Don't ingest this garbage
     def should_ingest(text)
-      !text.match?(ROLLERBOT) # Don't ingest this garbage
+      !text.match?(ROLLERBOT) &&
+        !text.match?(RERE) &&
+        !text.match?(TRRE)
     end
 
     def process_message(message)

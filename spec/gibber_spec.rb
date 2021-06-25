@@ -14,7 +14,8 @@ RSpec.describe Harmless::Gibber do
         "and porn",
         "those mitm approaches are increasingly common",
         "and still fucking horrible",
-        "Mr Rogers repeatedly putting on that clown mask will haunt my dreams for a week."
+        "Mr Rogers repeatedly putting on that clown mask will haunt my dreams for a week.",
+        "it's a b "
       ].each do |input|
         expect(gibber.should_ingest(input)).to eq(true)
       end
@@ -31,6 +32,22 @@ RSpec.describe Harmless::Gibber do
         "Tak! Roll: `[10]` Result: 10",
         "PlátanoHombre  Roll: `[50, 49, 49, 47, 46, 45, 43, 42, 33, 32, 32, 26, 26, 25, 23, 22, 17, 13, 12, 8, 7, 5, 4, 3, 2]` Result: 661",
         "PlátanoHombre Roll: `[4, 3, 2, 2]` Result: 11 Reason: `subpar rollerbot`"
+      ].each do |input|
+        expect(gibber.should_ingest(input)).to eq(false)
+      end
+    end
+
+    it "doesn't ingest regexes" do
+      gibber = Harmless::Gibber.new(nil, nil)
+      [
+        "s,Y,N",
+        "s,Y ,N,",
+        "s,Y,N,gi",
+        "s,Y,N,30%",
+        "tr,Y,N",
+        "tr,Y,N,",
+        "tr,Y,N,gi",
+        "tr,Y,N,30%",
       ].each do |input|
         expect(gibber.should_ingest(input)).to eq(false)
       end
