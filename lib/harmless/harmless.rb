@@ -50,6 +50,10 @@ module Harmless
       @gibber.dump
     end
 
+    def gibber_period(period)
+      @gibber.response_period = period
+    end
+
     def run
       @bot.run
     end

@@ -7,6 +7,8 @@ module Harmless
     RERE = /^\s*([^ :]+: *)?(-?\d*)?[Ss]([^\w])([^\3]*)\3([^\3]*)(\3([ginx]+|[0-9]{2}\%|))?$/
     TRRE = /^\s*([^ :]+: *)?(-?\d*)?[Tt][Rr]([^\w])([^\3]*)\3([^\3]*)(\3([0-9]{2}\%)?)?$/
 
+    attr_accessor :response_period
+
     def initialize(harmless, bot, response_period = 100)
       @gibber = ::Gibber::Gibber.new(CACHE)
       @harmless = harmless

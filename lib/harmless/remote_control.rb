@@ -15,7 +15,8 @@ module Harmless
       GIBBERDUMP: [],
       MSG: %i[CHANNEL TEXT],
       DELETE: %i[CHANNEL INTEGER],
-      REACT: %i[CHANNEL WORD INTEGER WORD]
+      REACT: %i[CHANNEL WORD INTEGER WORD],
+      GIBBER_PERIOD: %i[INTEGER]
     }.freeze
 
     # @param harmless The plugin instance
@@ -90,6 +91,11 @@ module Harmless
         message.react(reaction)
       end
       nil
+    end
+
+    def gibber_period(period)
+      @harmless.gibber_period(period)
+      "Gibber response period set to #{period}"
     end
 
     def self.validate_message_index(message_index)

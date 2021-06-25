@@ -7,6 +7,10 @@ RSpec.describe Harmless::RemoteControl do
     expect(Harmless::RemoteControl.parse_command("GRUEDUMP")).to eq([:gruedump, []])
   end
 
+  it "parses GIBBERDUMP" do
+    expect(Harmless::RemoteControl.parse_command("GIBBERDUMP")).to eq([:gibberdump, []])
+  end
+
   it "parses MSG" do
     expect(Harmless::RemoteControl.parse_command("MSG #banana banana!!!")).to eq([:msg, %w[banana banana!!!]])
   end
@@ -20,6 +24,10 @@ RSpec.describe Harmless::RemoteControl do
       .to eq([:react, ["banana", "PlátanoHombre", 3, ":banana:"]])
   end
 
+  it "parses GIBBER_PERIOD" do
+    expect(Harmless::RemoteControl.parse_command("GIBBER_PERIOD 20")).to eq([:gibber_period, [20]])
+  end
+
   it "rejects unknown commands" do
     %w[GREUDUMP BANANA NO_U WAT].each do |command|
       expect(Harmless::RemoteControl.parse_command(command)).to eq(nil)
@@ -29,10 +37,13 @@ RSpec.describe Harmless::RemoteControl do
   it "rejects commands with wrong number of arguments" do
     [
       "GRUEDUMP #banana blahblahblah",
+      "GIBBERDUMP 1",
       "DELETE 1",
       "MSG #banana",
       "REACT #banana :wat:",
-      "REACT #banana PlátanoHombre 1 :wat: :no_u:"
+      "REACT #banana PlátanoHombre 1 :wat: :no_u:",
+      "GIBBER_PERIOD",
+      "GIBBER_PERIOD #sslug 20"
     ].each do |command|
       expect(Harmless::RemoteControl.parse_command(command)).to eq(nil)
     end
@@ -43,7 +54,8 @@ RSpec.describe Harmless::RemoteControl do
       "DELETE banana 1",
       "DELETE #banana NO_U",
       "MSG banana banana",
-      "REACT #banana PlátanoHombre :wat: :no_u:"
+      "REACT #banana PlátanoHombre :wat: :no_u:",
+      "GIBBER_PERIOD banana"
     ].each do |command|
       expect(Harmless::RemoteControl.parse_command(command)).to eq(nil)
     end
