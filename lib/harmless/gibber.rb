@@ -15,7 +15,6 @@ module Harmless
       @bot = bot
       @response_period = response_period
       @seen_messages = 0
-      @user_prefix = "#{bot.profile.username}: " if bot
     end
 
     # Don't ingest this garbage
@@ -25,8 +24,16 @@ module Harmless
         !text.match?(TRRE)
     end
 
+    def user_prefix
+      if @user_prefix
+        @user_prefix
+      elsif @bot
+        @user_prefix = "#{@bot.profile.username}: "
+      end
+    end
+
     def should_respond(text, response_period, seen_messages)
-      (@user_prefix && text.strip.start_with?(@user_prefix)) || # direct mentions
+      (user_prefix && text.strip.start_with?(user_prefix)) || # direct mentions
         (response_period > 0 && (rand(response_period - seen_messages) == 1)) # periodicity
     end
 
