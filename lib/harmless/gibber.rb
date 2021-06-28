@@ -43,10 +43,9 @@ module Harmless
     end
 
     def process_message(message)
-      content = message.content.strip
-      return false unless should_ingest(content)
+      text = Harmless.replace_ids(message.content.strip, message)
+      return false unless should_ingest(text)
 
-      text = Harmless.replace_ids(content, message)
       @seen_messages += 1
       respond_to(text, message) if should_respond(text, @response_period, @seen_messages)
       puts "Ingesting: #{text}"
