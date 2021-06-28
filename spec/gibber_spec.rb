@@ -71,7 +71,7 @@ RSpec.describe Harmless::Gibber do
     it "responds within periodicity" do
       gibber = Harmless::Gibber.new(nil, nil)
       [10, 100, 1000].each do |period|
-        expect(period.times.detect { |i| gibber.should_respond("", period, i) }).not_to be_nil
+        expect((period * 2).times.detect { |i| gibber.should_respond("", period, i) }).not_to be_nil
       end
     end
   end
