@@ -75,4 +75,44 @@ RSpec.describe Harmless::Gibber do
       end
     end
   end
+
+  context "message preprocessing" do
+    it "filters whole-message emote formatting" do
+      gibber = Harmless::Gibber.new(nil, nil)
+      {
+        "_foo_" => "foo",
+        "_foo bar baz_" => "foo bar baz",
+        "_foo_bar_baz_" => "foo_bar_baz"
+      }.each do |input, output|
+        expect(gibber.preprocess_text(input)).to eq(output)
+      end
+    end
+
+    it "filters spoiler formatting" do
+      gibber = Harmless::Gibber.new(nil, nil)
+      {
+        "||snape marries dumbledore!!!||" => "snape marries dumbledore!!!",
+        "||https://nsfw.url|| << don't visit that nsfw url!" => "https://nsfw.url << don't visit that nsfw url!",
+        "||Jenny||'s phone number is ||867 5309||" => "Jenny's phone number is 867 5309",
+        "return foo || bar;" => "return foo || bar;"
+      }.each do |input, output|
+        expect(gibber.preprocess_text(input)).to eq(output)
+      end
+    end
+
+    it "applies phrase formatting per-token" do
+      gibber = Harmless::Gibber.new(nil, nil)
+      {
+        "I *don't want* to" => "I *don't* *want* to",
+        "I **don't want** to" => "I **don't** **want** to",
+        "I ***don't want*** to" => "I ***don't*** ***want*** to",
+        "I ~~don't want~~ to" => "I ~~don't~~ ~~want~~ to",
+        "I _am really *very* upset_" => "I _am_ _really_ _*very*_ _upset_",
+        "*do want to" => "*do want to",
+        ">  but what do *you mean*" => "but what do *you* *mean*"
+      }.each do |input, output|
+        expect(gibber.preprocess_text(input)).to eq(output)
+      end
+    end
+  end
 end
