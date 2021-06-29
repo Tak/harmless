@@ -42,7 +42,7 @@ module Harmless
     end
 
     def respond_to(text, message)
-      spew = @gibber.spew(text)
+      spew = @gibber.spew(text.sub(user_prefix, ""))
       3.times do
         # try up to 3 times to send response
         message.respond(spew)
@@ -73,7 +73,10 @@ module Harmless
 
       @seen_messages += 1
       text = preprocess_text(text)
-      respond_to(text, message) if should_respond(text, @response_period, @seen_messages)
+      if should_respond(text, @response_period, @seen_messages)
+        text = text.gsub(user_prefix, "")
+        respond_to(text, message)
+      end
       puts "Ingesting: #{text}"
       @gibber.ingest_text(text)
       false
