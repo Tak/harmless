@@ -21,8 +21,13 @@ module Harmless
     def process_message(message)
       restrict_propagation = false
       content = preprocess_message(message.content.strip, message)
-      # FIXME: Doesn't work with private messages
-      response = do_process_message(message.author.display_name, message.channel.name, message.channel.id, content) do |from, to, channel_id, text|
+      display_name = if message.author.respond_to?(:display_name)
+        message.author.display_name
+      else
+        message.channel.name
+      end
+
+      response = do_process_message(display_name, message.channel.name, message.channel.id, content) do |from, to, channel_id, text|
         restrict_propagation = true
         output_replacement(from, to, channel_id, text)
       end
