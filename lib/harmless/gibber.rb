@@ -42,8 +42,15 @@ module Harmless
     end
 
     def respond_to(text, message)
-      @seen_messages = 0
-      message.respond(@gibber.spew(text))
+      spew = @gibber.spew(text)
+      3.times do
+        # try up to 3 times to send response
+        message.respond(spew)
+        @seen_messages = 0
+        return
+      rescue
+        sleep(1)
+      end
     end
 
     def preprocess_text(text)
