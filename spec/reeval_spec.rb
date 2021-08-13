@@ -68,9 +68,12 @@ RSpec.describe Harmless::REEval do
       # Prime message store
       [
         "¡Yo me gusta los plátanos!",
+        "#helping"
       ].each { |message| reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(message, nil)) }
+
       {
-        "s,Y,N" => "¡No me gusta los plátanos!",
+        "1s,Y,N" => "¡No me gusta los plátanos!",
+        "1s,h,y" => "#yelping",
       }.each do |input, output|
         reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil)) do |_, _, _, text|
           expect(text).to eq(output)

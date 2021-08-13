@@ -49,11 +49,12 @@ module Harmless
     def do_process_message(author, channel_name, channel_id, content)
       begin
         # Allow /msg wat #sslug ledge: -1s/.*/I suck!
-        channel_name, content = Parsel::Parsel.parse_channel(content)
-        channel = @harmless.lookup_channel(channel_name)
+        parsed_channel_name, parsed_content = Parsel::Parsel.parse_channel(content)
+        channel = @harmless.lookup_channel(parsed_channel_name)
         return if channel.nil?
         channel_name = channel.name
         channel_id = channel.id
+        content = parsed_content
       rescue
         # Normal case
       end
