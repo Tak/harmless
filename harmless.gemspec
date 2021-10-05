@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "grue"
   spec.add_dependency "parsel"
   spec.add_dependency "urika"
+  spec.add_dependency "rjb"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", "~> 13.0"
