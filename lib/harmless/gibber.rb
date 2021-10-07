@@ -42,7 +42,8 @@ module Harmless
     end
 
     def respond_to(text, message)
-      spew = @gibber.spew(text.sub(user_prefix, ""))
+      input = text.sub(user_prefix, "")
+      spew = @gibber.spew(input)
       3.times do
         # try up to 3 times to send response
         message.respond(spew)
@@ -50,6 +51,12 @@ module Harmless
         return
       rescue
         sleep(1)
+      end
+      begin
+        spew = @gibber.spew(input, true)
+        puts "nlp: #{spew}"
+      rescue => e
+        puts "#{e}\n#{e.backtrace}"
       end
     end
 
