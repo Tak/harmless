@@ -69,13 +69,13 @@ RSpec.describe Harmless::REEval do
       [
         "¡Yo me gusta los plátanos!",
         "#helping"
-      ].each { |message| reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(message, nil)) }
+      ].each { |message| reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(message, nil), nil, nil) }
 
       {
         "1s,Y,N" => "¡No me gusta los plátanos!",
         "1s,h,y" => "#yelping",
       }.each do |input, output|
-        reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil)) do |_, _, _, text|
+        reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), nil, nil) do |_, _, _, text|
           expect(text).to eq(output)
         end
       end
@@ -88,7 +88,7 @@ RSpec.describe Harmless::REEval do
         "_se gusta los plátanos_",
       ].each do |message|
         reeval.do_process_message("PlátanoHombre", "banana", 0,
-          reeval.preprocess_message(message, nil))
+          reeval.preprocess_message(message, nil), nil, nil)
       end
       {
         "s,^,no ," => "\001ACTIONno se gusta los plátanos\001",
@@ -96,7 +96,7 @@ RSpec.describe Harmless::REEval do
         "s,plátan,tac," => "\001ACTION¿no se gusta los tacos?\001",
       }.each do |input, output|
         reeval.do_process_message("PlátanoHombre", "banana", 0,
-          reeval.preprocess_message(input, nil)) do |_, _, _, text|
+          reeval.preprocess_message(input, nil), nil, nil) do |_, _, _, text|
           expect(text).to eq(output)
         end
       end
@@ -109,15 +109,41 @@ RSpec.describe Harmless::REEval do
         "> Yo me gusta los plátanos",
       ].each do |message|
         reeval.do_process_message("PlátanoHombre", "banana", 0,
-          reeval.preprocess_message(message, nil))
+          reeval.preprocess_message(message, nil), nil, nil)
       end
       {
         # "s,.,N," => "> No me gusta los plátanos", #FIXME
         "s,Y,N," => "> No me gusta los plátanos",
       }.each do |input, output|
         reeval.do_process_message("PlátanoHombre", "banana", 0,
-          reeval.preprocess_message(input, nil)) do |_, _, _, text|
+          reeval.preprocess_message(input, nil), nil, nil) do |_, _, _, text|
           expect(text).to eq(output)
+        end
+      end
+    end
+
+    it "performs replacement in replies to self" do
+      reeval = Harmless::REEval.new(nil, nil)
+      [
+        ["1s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
+        ["1s,h,y", "#yelping", "#helping"],
+      ].each do |input, output, referenced|
+        reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), nil, referenced) do |_, _, _, text|
+          expect(text).to eq(output)
+        end
+      end
+    end
+
+    it "performs replacement in replies to others" do
+      reeval = Harmless::REEval.new(nil, nil)
+      msg_to = "BananManden"
+      [
+        ["1s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
+        ["1s,h,y", "#yelping", "#helping"],
+      ].each do |input, output, referenced|
+        reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), msg_to, referenced) do |_, to, _, text|
+          expect(text).to eq(output)
+          expect(to).to eq(msg_to)
         end
       end
     end

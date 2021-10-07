@@ -16,18 +16,29 @@ module Harmless
       @bot = bot
     end
 
+    def author_display_name(message)
+      if message.author.respond_to?(:display_name)
+        message.author.display_name
+      else
+        message.channel.name
+      end
+    end
+
     # Processes an incoming server message
     # * data -> discord message event
     def process_message(message)
       restrict_propagation = false
       content = preprocess_message(message.content.strip, message)
-      display_name = if message.author.respond_to?(:display_name)
-        message.author.display_name
-      else
-        message.channel.name
+      display_name = author_display_name(message)
+
+      if message.reply?
+        referenced_message = message.referenced_message
+        reply_author = author_display_name(referenced_message)
+        reply_author = nil if reply_author == display_name
+        reply_content = preprocess_message(referenced_message.content.strip, referenced_message)
       end
 
-      response = do_process_message(display_name, message.channel.name, message.channel.id, content) do |from, to, channel_id, text|
+      response = do_process_message(display_name, message.channel.name, message.channel.id, content, reply_author, reply_content) do |from, to, channel_id, text|
         restrict_propagation = true
         output_replacement(from, to, channel_id, text)
       end
@@ -46,7 +57,7 @@ module Harmless
       Harmless.replace_ids(content, message).sub(EMOTERE, IRCEMOTEREPLACEMENT).strip
     end
 
-    def do_process_message(author, channel_name, channel_id, content)
+    def do_process_message(author, channel_name, channel_id, content, reply_author, reply_content)
       begin
         # Allow /msg wat #sslug ledge: -1s/.*/I suck!
         parsed_channel_name, parsed_content = Parsel::Parsel.parse_channel(content)
@@ -61,8 +72,14 @@ module Harmless
 
       storekey = "#{author}|#{channel_name}"	# Append channel name for (some) uniqueness
 
-      @reeval.process_full(storekey, author, content) do |from, to, msg|
-        yield from, to, channel_id, msg
+      if reply_content
+        @reeval.process_reply(storekey, author, content, reply_author, reply_content) do |from, to, msg|
+          yield from, to, channel_id, msg
+        end
+      else
+        @reeval.process_full(storekey, author, content) do |from, to, msg|
+          yield from, to, channel_id, msg
+        end
       end
     end
 
