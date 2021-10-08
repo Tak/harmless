@@ -48,7 +48,7 @@ module Harmless
         # try up to 3 times to send response
         message.respond(spew)
         @seen_messages = 0
-        return
+        break
       rescue
         sleep(1)
       end
