@@ -90,14 +90,14 @@ module Harmless
     # Replace embedded discord IDs with names
     def self.replace_ids(text, message)
       text = text.scan(CHANNELIDRE).inject(text) do |input, id|
-        if (channel = message.server.text_channels.detect { |channel| channel.id == id[0] })
+        if (channel = message.server&.text_channels&.detect { |channel| channel.id == id[0] })
           input.sub(/<##{id[0]}>/, "##{channel.name}")
         else
           input
         end
       end
       text.scan(NICKRE).inject(text) do |input, id|
-        if (member = message.server.member(id[0].to_i))
+        if (member = message.server&.member(id[0].to_i))
           input.sub(/<@!?#{id[0]}>/, "#{member.display_name}:")
         else
           input
