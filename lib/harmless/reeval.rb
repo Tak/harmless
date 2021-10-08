@@ -41,8 +41,8 @@ module Harmless
       content = preprocess_message(message.content.strip, message)
       display_name = author_display_name(message)
 
-      if message.reply?
-        referenced_message = message.referenced_message
+      if message.message.reply?
+        referenced_message = message.message.referenced_message
         reply_author, reply_content = update_author_content_from_chained_replacement_header(
           author_display_name(referenced_message), preprocess_message(referenced_message.content.strip, referenced_message))
         reply_author = nil if reply_author == display_name
