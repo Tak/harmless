@@ -125,8 +125,8 @@ RSpec.describe Harmless::REEval do
     it "performs replacement in replies to self" do
       reeval = Harmless::REEval.new(nil, nil)
       [
-        ["1s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
-        ["1s,h,y", "#yelping", "#helping"],
+        ["s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
+        ["s,h,y", "#yelping", "#helping"],
       ].each do |input, output, referenced|
         reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), nil, referenced) do |_, _, _, text|
           expect(text).to eq(output)
@@ -138,13 +138,30 @@ RSpec.describe Harmless::REEval do
       reeval = Harmless::REEval.new(nil, nil)
       msg_to = "BananManden"
       [
-        ["1s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
-        ["1s,h,y", "#yelping", "#helping"],
+        ["s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
+        ["s,h,y", "#yelping", "#helping"],
       ].each do |input, output, referenced|
         reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), msg_to, referenced) do |_, to, _, text|
           expect(text).to eq(output)
           expect(to).to eq(msg_to)
         end
+      end
+    end
+
+    it "doesn't include replacement display header in chained replacements" do
+      reeval = Harmless::REEval.new(nil, nil)
+      chained_reply_author = "wat"
+      previous_reply_author = "BananManden"
+      [
+        ["PlátanoHombre", "¡Yo me gusta los plátanos!"],
+      ].each do |content_author, base_content|
+        reply_author, reply_content = reeval.update_author_content_from_chained_replacement_header(chained_reply_author, "#{content_author} meant: #{base_content}")
+        expect(reply_author).to eq(content_author)
+        expect(reply_content).to eq(base_content)
+
+        reply_author, reply_content = reeval.update_author_content_from_chained_replacement_header(chained_reply_author, "#{content_author} thinks #{previous_reply_author} meant: #{base_content}")
+        expect(reply_author).to eq(content_author)
+        expect(reply_content).to eq(base_content)
       end
     end
   end

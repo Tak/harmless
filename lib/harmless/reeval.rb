@@ -9,6 +9,7 @@ module Harmless
     EMOTERE = /^_([^_]+)_$/
     IRCEMOTEREPLACEMENT = "\001ACTION\\1\001"
     IRCEMOTERE = /\001ACTION(.*)\001/
+    MEANTRE = /^([^\s]+) (thinks [^\s]+ )?meant: /
 
     def initialize(harmless, bot)
       @reeval = ::REEval::REEval.new
@@ -24,6 +25,15 @@ module Harmless
       end
     end
 
+    def update_author_content_from_chained_replacement_header(reply_author, reply_content)
+      match = reply_content.match(MEANTRE)
+      if match
+        [match[1], reply_content.sub(MEANTRE, "")]
+      else
+        [reply_author, reply_content]
+      end
+    end
+
     # Processes an incoming server message
     # * data -> discord message event
     def process_message(message)
@@ -33,9 +43,9 @@ module Harmless
 
       if message.reply?
         referenced_message = message.referenced_message
-        reply_author = author_display_name(referenced_message)
+        reply_author, reply_content = update_author_content_from_chained_replacement_header(
+          author_display_name(referenced_message), preprocess_message(referenced_message.content.strip, referenced_message))
         reply_author = nil if reply_author == display_name
-        reply_content = preprocess_message(referenced_message.content.strip, referenced_message)
       end
 
       response = do_process_message(display_name, message.channel.name, message.channel.id, content, reply_author, reply_content) do |from, to, channel_id, text|
