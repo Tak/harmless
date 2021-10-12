@@ -28,6 +28,10 @@ RSpec.describe Harmless::RemoteControl do
     expect(Harmless::RemoteControl.parse_command("GIBBER_PERIOD 20")).to eq([:gibber_period, [20]])
   end
 
+  it "parses GIBBER_METHOD" do
+    expect(Harmless::RemoteControl.parse_command("GIBBER_METHOD nlp")).to eq([:gibber_method, ["nlp"]])
+  end
+
   it "rejects unknown commands" do
     %w[GREUDUMP BANANA NO_U WAT].each do |command|
       expect(Harmless::RemoteControl.parse_command(command)).to eq(nil)
@@ -43,7 +47,9 @@ RSpec.describe Harmless::RemoteControl do
       "REACT #banana :wat:",
       "REACT #banana PlátanoHombre 1 :wat: :no_u:",
       "GIBBER_PERIOD",
-      "GIBBER_PERIOD #sslug 20"
+      "GIBBER_PERIOD #sslug 20",
+      "GIBBER_METHOD",
+      "GIBBER_METHOD #sslug 20",
     ].each do |command|
       expect(Harmless::RemoteControl.parse_command(command)).to eq(nil)
     end

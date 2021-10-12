@@ -12,6 +12,7 @@ module Harmless
     QUOTERE = /^>\s+/
 
     attr_accessor :response_period
+    attr_accessor :use_nlp
 
     def initialize(harmless, bot, response_period = 100)
       @gibber = ::Gibber::Gibber.new(CACHE)
@@ -19,6 +20,7 @@ module Harmless
       @bot = bot
       @response_period = response_period
       @seen_messages = 0
+      @use_nlp = false
     end
 
     # Don't ingest this garbage
@@ -43,7 +45,7 @@ module Harmless
 
     def respond_to(text, message)
       input = text.sub(user_prefix, "")
-      spew = @gibber.spew(input)
+      spew = @gibber.spew(input, @use_nlp)
       3.times do
         # try up to 3 times to send response
         message.respond(spew)
@@ -53,8 +55,8 @@ module Harmless
         sleep(1)
       end
       begin
-        spew = @gibber.spew(input, true)
-        puts "nlp: #{spew}"
+        spew = @gibber.spew(input, !@use_nlp)
+        puts "#{(@use_nlp ? "raw" : "nlp")}: #{spew}"
       rescue => e
         puts "#{e}\n#{e.backtrace}"
       end

@@ -54,6 +54,10 @@ module Harmless
       @gibber.response_period = period
     end
 
+    def gibber_use_nlp(use_nlp)
+      @gibber.use_nlp = use_nlp
+    end
+
     def run
       @bot.run
     end

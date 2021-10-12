@@ -16,7 +16,8 @@ module Harmless
       MSG: %i[CHANNEL TEXT],
       DELETE: %i[CHANNEL INTEGER],
       REACT: %i[CHANNEL WORD INTEGER WORD],
-      GIBBER_PERIOD: %i[INTEGER]
+      GIBBER_PERIOD: %i[INTEGER],
+      GIBBER_METHOD: %i[WORD],
     }.freeze
 
     # @param harmless The plugin instance
@@ -96,6 +97,17 @@ module Harmless
     def gibber_period(period)
       @harmless.gibber_period(period)
       "Gibber response period set to #{period}"
+    end
+
+    def gibber_method(method)
+      case method&.downcase
+      when "raw"
+        @harmless.gibber_use_nlp(false)
+      when "nlp"
+        @harmless.gibber_use_nlp(true)
+      else
+        raise "Invalid gibber method '#{method}'"
+      end
     end
 
     def self.validate_message_index(message_index)
