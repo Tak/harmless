@@ -17,14 +17,6 @@ module Harmless
       @bot = bot
     end
 
-    def author_display_name(message)
-      if message.author.respond_to?(:display_name)
-        message.author.display_name
-      else
-        message.channel.name
-      end
-    end
-
     def update_author_content_from_chained_replacement_header(reply_author, reply_content)
       match = reply_content.match(MEANTRE)
       if match
@@ -84,11 +76,11 @@ module Harmless
 
       if reply_content
         @reeval.process_reply(storekey, author, content, reply_author, reply_content) do |from, to, msg|
-          yield from, to, channel_id, msg
+          yield from, to, channel_id, msg unless is_empty_emote?(msg)
         end
       else
         @reeval.process_full(storekey, author, content) do |from, to, msg|
-          yield from, to, channel_id, msg
+          yield from, to, channel_id, msg unless is_empty_emote?(msg)
         end
       end
     end
@@ -113,6 +105,21 @@ module Harmless
         "#{nick} meant: #{sometext}"
       end
       @bot.send_message(channel, sometext)
+    end
+
+    private
+
+    def author_display_name(message)
+      if message.author.respond_to?(:display_name)
+        message.author.display_name
+      else
+        message.channel.name
+      end
+    end
+
+    def is_empty_emote?(text)
+      match = text.match(IRCEMOTERE)
+      match && match[1]&.strip&.empty?
     end
   end
 end

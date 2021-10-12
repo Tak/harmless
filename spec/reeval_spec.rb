@@ -122,46 +122,78 @@ RSpec.describe Harmless::REEval do
       end
     end
 
-    it "performs replacement in replies to self" do
+    it "doesn't output replacements that result in empty emotes" do
       reeval = Harmless::REEval.new(nil, nil)
+      # Prime message store
       [
-        ["s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
-        ["s,h,y", "#yelping", "#helping"],
-      ].each do |input, output, referenced|
-        reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), nil, referenced) do |_, _, _, text|
-          expect(text).to eq(output)
+        "_gusta los plátanos_",
+      ].each do |message|
+        reeval.do_process_message("PlátanoHombre", "banana", 0,
+                                  reeval.preprocess_message(message, nil), nil, nil)
+      end
+      [
+        "s,Y,N",
+      ].each do |input|
+        reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), nil, nil) do |_, _, _, text|
+          raise "Got unexpected replacement #{text}"
         end
       end
     end
 
-    it "performs replacement in replies to others" do
-      reeval = Harmless::REEval.new(nil, nil)
-      msg_to = "BananManden"
-      [
-        ["s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
-        ["s,h,y", "#yelping", "#helping"],
-      ].each do |input, output, referenced|
-        reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), msg_to, referenced) do |_, to, _, text|
-          expect(text).to eq(output)
-          expect(to).to eq(msg_to)
+    context "when replying directly" do
+      it "performs replacement in replies to self" do
+        reeval = Harmless::REEval.new(nil, nil)
+        [
+          ["s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
+          ["s,h,y", "#yelping", "#helping"],
+        ].each do |input, output, referenced|
+          reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), nil, referenced) do |_, _, _, text|
+            expect(text).to eq(output)
+          end
         end
       end
-    end
 
-    it "doesn't include replacement display header in chained replacements" do
-      reeval = Harmless::REEval.new(nil, nil)
-      chained_reply_author = "wat"
-      previous_reply_author = "BananManden"
-      [
-        ["PlátanoHombre", "¡Yo me gusta los plátanos!"],
-      ].each do |content_author, base_content|
-        reply_author, reply_content = reeval.update_author_content_from_chained_replacement_header(chained_reply_author, "#{content_author} meant: #{base_content}")
-        expect(reply_author).to eq(content_author)
-        expect(reply_content).to eq(base_content)
+      it "performs replacement in replies to others" do
+        reeval = Harmless::REEval.new(nil, nil)
+        msg_to = "BananManden"
+        [
+          ["s,Y,N", "¡No me gusta los plátanos!", "¡Yo me gusta los plátanos!"],
+          ["s,h,y", "#yelping", "#helping"],
+        ].each do |input, output, referenced|
+          reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), msg_to, referenced) do |_, to, _, text|
+            expect(text).to eq(output)
+            expect(to).to eq(msg_to)
+          end
+        end
+      end
 
-        reply_author, reply_content = reeval.update_author_content_from_chained_replacement_header(chained_reply_author, "#{content_author} thinks #{previous_reply_author} meant: #{base_content}")
-        expect(reply_author).to eq(content_author)
-        expect(reply_content).to eq(base_content)
+      it "doesn't include replacement display header in chained replacements" do
+        reeval = Harmless::REEval.new(nil, nil)
+        chained_reply_author = "wat"
+        previous_reply_author = "BananManden"
+        [
+          ["PlátanoHombre", "¡Yo me gusta los plátanos!"],
+        ].each do |content_author, base_content|
+          reply_author, reply_content = reeval.update_author_content_from_chained_replacement_header(chained_reply_author, "#{content_author} meant: #{base_content}")
+          expect(reply_author).to eq(content_author)
+          expect(reply_content).to eq(base_content)
+
+          reply_author, reply_content = reeval.update_author_content_from_chained_replacement_header(chained_reply_author, "#{content_author} thinks #{previous_reply_author} meant: #{base_content}")
+          expect(reply_author).to eq(content_author)
+          expect(reply_content).to eq(base_content)
+        end
+      end
+
+      it "doesn't output replacements that result in empty emotes" do
+        reeval = Harmless::REEval.new(nil, nil)
+        msg_to = "BananManden"
+        [
+          ["s,Y,N", "_gusta los plátanos_"],
+        ].each do |input, referenced|
+          reeval.do_process_message("PlátanoHombre", "banana", 0, reeval.preprocess_message(input, nil), msg_to, reeval.preprocess_message(referenced, nil)) do |_, _, _, text|
+            raise "Got unexpected replacement #{text}"
+          end
+        end
       end
     end
   end
