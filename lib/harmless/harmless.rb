@@ -7,6 +7,7 @@ require_relative "grue"
 require_relative "remote_control"
 require_relative "reeval"
 require_relative "gibber"
+require_relative "cronk"
 
 module Harmless
   # Discord bot that integrates a bunch of small message reaction functionalities
@@ -22,11 +23,20 @@ module Harmless
       @grue = Grue.new(@bot)
       @gibber = Gibber.new(self, @bot, 0) # disable periodic autoresponse for now
       @bot.message { |message| process_message(message) }
+
+      @cronk = Cronk.new
+      @cronk.schedule(nil, Rational(1, 24)) do
+        # Backup url and message database hourly
+        gruedump
+        gibberdump
+      end
+
       @consumers = [
         [RemoteControl.new(self, @bot), nil],
         [REEval.new(self, @bot), nil],
         [@grue, nil],
-        [@gibber, nil]
+        [@gibber, nil],
+        [@cronk, nil]
       ]
     end
 
